@@ -35,19 +35,21 @@
  
      protected AttackResult injectableQueryAvailability(String action) {
          StringBuilder output = new StringBuilder();
-@@ -33,1 +34,1 @@
+@@ -33,1 +34,6 @@
 -        String query = "SELECT * FROM access_log WHERE action LIKE '%" + action + "%'";
-+          String query = "SELECT * FROM access_log WHERE action LIKE ?";
++    String query = "SELECT * FROM access_log WHERE action LIKE ?";
++    try (Connection connection = dataSource.getConnection()) {
++        try {
++            PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
++            preparedStatement.setString(1, "%" + action + "%");
++            ResultSet results = preparedStatement.executeQuery();
  
-         try (Connection connection = dataSource.getConnection()) {
-@@ -36,3 +37,3 @@
+@@ -35,5 +41,0 @@
+-        try (Connection connection = dataSource.getConnection()) {
 -            try {
 -                Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 -                ResultSet results = statement.executeQuery(query);
-+              try (PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-+                  preparedStatement.setString(1, "%" + action + "%");
-+                  ResultSet results = preparedStatement.executeQuery();
- 
+-
                  if (results.getStatement() != null) {
                      results.first();
                      output.append(SqlInjectionLesson8.generateTable(results));
